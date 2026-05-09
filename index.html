@@ -2170,8 +2170,12 @@ const db = {
             },
 
             buildReceiptString: (tx) => {
+              buildReceiptString: (tx) => {
                 const is80 = state.settings.paperSize === '80';
-                const w = is80 ? 48 : 32; // Characters width
+                
+                // [UBAH DI SINI] Karena font lebih kecil, kertas memuat lebih banyak karakter
+                // Biasanya Font B memuat 42 karakter untuk kertas 58mm, dan 64 untuk 80mm
+                const w = is80 ? 64 : 42; 
                 
                 const pad = (str, len, align='left', padChar=' ') => {
                     str = String(str).substring(0, len);
@@ -2180,10 +2184,14 @@ const db = {
                     return str.padStart(Math.floor((len+str.length)/2), padChar).padEnd(len, padChar);
                 };
 
-                let txt = "\x1B\x40"; // Init
+                let txt = "\x1B\x40"; // Init (Reset Printer)
+                
+                // [TAMBAHKAN DI SINI] Perintah ESC M 1 untuk menggunakan Font B (Ukuran Kecil)
+                txt += "\x1B\x4D\x01"; 
+
                 txt += "\x1B\x61\x01"; // Align Center
-                txt += "\x1B\x21\x10" + state.settings.storeName + "\n"; // Double height
-                txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal
+                txt += "\x1B\x21\x10" + state.settings.storeName + "\n"; // Double height (Nama Toko tetap agak besar)
+                txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal (akan mengikuti Font B)
                 txt += pad('', w, 'left', '-') + "\n";
                 
                 txt += "\x1B\x61\x00"; // Align Left
@@ -2202,14 +2210,19 @@ const db = {
                 txt += pad('', w, 'left', '-') + "\n";
                 txt += pad('Subtotal:', w - tx.subtotal.toString().length) + tx.subtotal + "\n";
                 if(tx.discount > 0) txt += pad('Diskon:', w - tx.discount.toString().length - 1) + "-" + tx.discount + "\n";
+                
+                // Baris TOTAL sengaja dibiarkan besar (\x1B\x21\x10) agar jelas
                 txt += "\x1B\x21\x10" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\n\x1B\x21\x00";
                 
+                // Pastikan kembali ke font kecil setelah total
+                txt += "\x1B\x4D\x01"; 
+
                 txt += pad('', w, 'left', '-') + "\n";
                 txt += pad('Dibayar:', w - tx.received.toString().length) + tx.received + "\n";
                 txt += pad('Kembali:', w - tx.change.toString().length) + tx.change + "\n";
                 
                 txt += "\x1B\x61\x01"; // Center
-                txt += "\nTerima Kasih\n\n\n\n";
+                txt += "\nTerima Kasih Atas Kunjungannya\n\n\n\n";
                 txt += "\x1D\x56\x42\x00"; // Cut paper
                 
                 return txt;
