@@ -945,54 +945,84 @@
         };
 
         // Data Management (Local Storage & Apps Script Fallback)
-        const db = {
-            init: async () => {
-                const migrateUsers = () => {
-                    // Migrasi database lama ke baru
-                    if (!state.settings.users) {
-                        state.settings.users = [
-                            { id: 'u1', name: 'Administrator', pin: state.settings.pinAdmin || '1234', role: 'admin' },
-                            { id: 'u2', name: 'Kasir Utama', pin: state.settings.pinKasir || '1111', role: 'kasir' }
-                        ];
-                    }
-                };
+// WAJIB GANTI: Masukkan URL Web App dari Google Apps Script Anda di sini!
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwGlaw0jUOxYkFNycHZKYeTeck6R6zX9fRYKTc-rPPAzpzNCyAIzpAFAVi1reXm7X3Bhw/exec";
 
-                try {
-                    if (state.isAppsScript) {
-                        // Load from GAS
-                        google.script.run.withSuccessHandler(data => {
-                            state.products = data.products || [];
-                            state.transactions = data.transactions || [];
-                            if(Object.keys(data.settings || {}).length > 0) state.settings = {...state.settings, ...data.settings};
-                            migrateUsers();
-                            console.log("Data loaded from Apps Script");
-                        }).getAppData();
-                    } else {
-                        // Load from LocalStorage
-                        const p = localStorage.getItem('pos_products');
-                        const t = localStorage.getItem('pos_transactions');
-                        const s = localStorage.getItem('pos_settings');
-                        if(p) state.products = JSON.parse(p);
-                        if(t) state.transactions = JSON.parse(t);
-                        if(s) state.settings = {...state.settings, ...JSON.parse(s)};
-                        migrateUsers();
-                    }
-                } catch(e) { console.error("DB Init Error", e); }
-            },
-            saveProducts: () => {
-                if (state.isAppsScript) google.script.run.saveProducts(state.products);
-                else localStorage.setItem('pos_products', JSON.stringify(state.products));
-            },
-            saveTransaction: (tx) => {
-                state.transactions.push(tx);
-                if (state.isAppsScript) google.script.run.saveTransaction(tx);
-                else localStorage.setItem('pos_transactions', JSON.stringify(state.transactions));
-            },
-            saveSettings: () => {
-                if (state.isAppsScript) google.script.run.saveSettings(state.settings);
-                else localStorage.setItem('pos_settings', JSON.stringify(state.settings));
+const db = {
+    init: async () => {
+        const migrateUsers = () => {
+            // Migrasi database lama ke baru
+            if (!state.settings.users) {
+                state.settings.users = [
+                    { id: 'u1', name: 'Administrator', pin: state.settings.pinAdmin || '1234', role: 'admin' },
+                    { id: 'u2', name: 'Kasir Utama', pin: state.settings.pinKasir || '1111', role: 'kasir' }
+                ];
             }
         };
+
+        try {
+            console.log("Mengambil data dari Google Sheets...");
+            const response = await fetch(GAS_URL);
+            const result = await response.json();
+            
+            if(result.status === "success") {
+                state.products = result.data.products || [];
+                state.transactions = result.data.transactions || [];
+                if(Object.keys(result.data.settings || {}).length > 0) {
+                    state.settings = {...state.settings, ...result.data.settings};
+                }
+                migrateUsers();
+                console.log("Data berhasil dimuat dari server!");
+            } else {
+                console.error("Gagal load data server:", result.message);
+                throw new Error("Gagal load data");
+            }
+        } catch(e) { 
+            console.error("DB Init Error, menggunakan LocalStorage", e); 
+            // Fallback: Jika internet mati / gagal fetch, ambil dari LocalStorage
+            const p = localStorage.getItem('pos_products');
+            const t = localStorage.getItem('pos_transactions');
+            const s = localStorage.getItem('pos_settings');
+            if(p) state.products = JSON.parse(p);
+            if(t) state.transactions = JSON.parse(t);
+            if(s) state.settings = {...state.settings, ...JSON.parse(s)};
+            migrateUsers();
+        }
+    },
+
+    sendToServer: async (actionName, payloadData) => {
+        const payload = { action: actionName, data: payloadData };
+        try {
+            const response = await fetch(GAS_URL, {
+                method: "POST",
+                redirect: "follow",
+                body: JSON.stringify(payload),
+                headers: { "Content-Type": "text/plain;charset=utf-8" }
+            });
+            const result = await response.json();
+            return result.status === "success";
+        } catch (e) {
+            console.error(`Gagal mengirim ke server (${actionName}):`, e);
+            return false;
+        }
+    },
+
+    saveProducts: async () => {
+        localStorage.setItem('pos_products', JSON.stringify(state.products)); // Backup lokal
+        await db.sendToServer("saveProducts", state.products); // Kirim ke Sheets
+    },
+
+    saveTransaction: async (tx) => {
+        state.transactions.push(tx); 
+        localStorage.setItem('pos_transactions', JSON.stringify(state.transactions)); // Backup lokal
+        await db.sendToServer("saveTransaction", tx); // Kirim ke Sheets
+    },
+
+    saveSettings: async () => {
+        localStorage.setItem('pos_settings', JSON.stringify(state.settings)); // Backup lokal
+        await db.sendToServer("saveSettings", state.settings); // Kirim ke Sheets
+    }
+};
 
         // POS (Point of Sale) Controller
         const pos = {
