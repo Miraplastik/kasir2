@@ -2202,14 +2202,14 @@ const db = {
                 txt += pad('', w, 'left', '-') + "\n";
                 txt += pad('Subtotal:', w - tx.subtotal.toString().length) + tx.subtotal + "\n";
                 if(tx.discount > 0) txt += pad('Diskon:', w - tx.discount.toString().length - 1) + "-" + tx.discount + "\n";
-                txt += "\x1B\x21\x00" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\n\x1B\x21\x00";
+                txt += "\x1B\x21\x00" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\x1B\x21\x00";
                 
                 txt += pad('', w, 'left', '-') + "\n";
                 txt += pad('Dibayar:', w - tx.received.toString().length) + tx.received + "\n";
                 txt += pad('Kembali:', w - tx.change.toString().length) + tx.change + "\n";
                 
                 txt += "\x1B\x61\x01"; // Center
-                txt += "\nTerima Kasih\n\n\n\n";
+                txt += "\nTerima Kasih Atas Kunjungannya\n\n\n\n";
                 txt += "\x1D\x56\x42\x00"; // Cut paper
                 
                 return txt;
