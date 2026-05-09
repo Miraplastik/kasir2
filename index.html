@@ -2172,7 +2172,7 @@ const db = {
             buildReceiptString: (tx) => {
               buildReceiptString: (tx) => {
                 const is80 = state.settings.paperSize === '80';
-             const w = is80 ? 64 : 42; 
+                const w = is80 ? 64 : 42; 
                 
                 const pad = (str, len, align='left', padChar=' ') => {
                     str = String(str).substring(0, len);
