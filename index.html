@@ -163,7 +163,7 @@
             <button onclick="auth.login()" class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/30">
                 Masuk Sistem
             </button>
-            <p class="text-xs text-gray-400 mt-4">Hint: Admin 1234, Kasir 1111</p>
+            <p class="text-xs text-gray-400 mt-4">Bekerjalah Dengan Jujur</p>
         </div>
     </div>
 
@@ -179,7 +179,7 @@
                 <button onclick="ui.closeReportPinModal()" class="flex-1 bg-gray-200 text-slate-700 font-semibold py-2.5 rounded-lg hover:bg-gray-300 transition">Batal</button>
                 <button onclick="auth.verifyReportPin()" class="flex-1 bg-primary text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition">Akses</button>
             </div>
-            <p class="text-xs text-gray-400 mt-4">Hint: 9999</p>
+            <p class="text-xs text-gray-400 mt-4">Hanya Pemilik</p>
         </div>
     </div>
 
@@ -2186,7 +2186,7 @@ const db = {
                 txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal
                 txt += pad('', w, 'left', '-') + "\n";
                 
-                txt += "\x1B\x21\x00"; // Align Left
+                txt += "\x1B\x4D\x01"; // Align Left
                 txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
                 txt += pad('No : ' + tx.id, w) + "\n";
                 txt += pad('Ksr: ' + tx.kasir, w) + "\n";
