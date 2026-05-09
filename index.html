@@ -2186,8 +2186,6 @@ const db = {
                 txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal
                 txt += pad('', w, 'left', '-') + "\n";
                 
-                let txt = "\x1B\x40"; // Init (Reset)
-                txt += "\x1B\x4D\x01"; // Masukkan kode font kecil DI SINI
                 txt += "\x1B\x61\x01"; // Baru kemudian Align Center
                 txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
                 txt += pad('No : ' + tx.id, w) + "\n";
