@@ -2186,7 +2186,7 @@ const db = {
                 txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal
                 txt += pad('', w, 'left', '-') + "\n";
                 
-                txt += "\x1B\x61\x00"; // Align Left
+                txt += "\x1B\x21\x00"; // Align Left
                 txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
                 txt += pad('No : ' + tx.id, w) + "\n";
                 txt += pad('Ksr: ' + tx.kasir, w) + "\n";
@@ -2202,7 +2202,7 @@ const db = {
                 txt += pad('', w, 'left', '-') + "\n";
                 txt += pad('Subtotal:', w - tx.subtotal.toString().length) + tx.subtotal + "\n";
                 if(tx.discount > 0) txt += pad('Diskon:', w - tx.discount.toString().length - 1) + "-" + tx.discount + "\n";
-                txt += "\x1B\x21\x10" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\n\x1B\x21\x00";
+                txt += "\x1B\x21\x00" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\n\x1B\x21\x00";
                 
                 txt += pad('', w, 'left', '-') + "\n";
                 txt += pad('Dibayar:', w - tx.received.toString().length) + tx.received + "\n";
