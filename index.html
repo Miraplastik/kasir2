@@ -2171,62 +2171,62 @@ const db = {
 
             buildReceiptString: (tx) => {
               buildReceiptString: (tx) => {
-    const is80 = state.settings.paperSize === '80';
-    
-    // [UBAH] Lebar karakter disesuaikan karena Font B lebih kecil/ramping
-    // Kertas 58mm (is80 false) biasanya muat 42 karakter dengan Font B
-    const w = is80 ? 64 : 42; 
-    
-    const pad = (str, len, align='left', padChar=' ') => {
-        str = String(str).substring(0, len);
-        if(align === 'left') return str.padEnd(len, padChar);
-        if(align === 'right') return str.padStart(len, padChar);
-        return str.padStart(Math.floor((len+str.length)/2), padChar).padEnd(len, padChar);
-    };
-
-    let txt = "\x1B\x40"; // Init
-    
-    // [TAMBAH] Perintah untuk Font Kecil (Font B)
-    txt += "\x1B\x4D\x01"; 
-
-    txt += "\x1B\x61\x01"; // Align Center
-    txt += "\x1B\x21\x10" + state.settings.storeName + "\n"; // Tetap Double height agar Nama Toko menonjol
-    txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal (mengikuti Font B)
-    txt += pad('', w, 'left', '-') + "\n";
-    
-    txt += "\x1B\x61\x00"; // Align Left
-    txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
-    txt += pad('No : ' + tx.id, w) + "\n";
-    txt += pad('Ksr: ' + tx.kasir, w) + "\n";
-    txt += pad('', w, 'left', '-') + "\n";
-
-    tx.items.forEach(item => {
-        txt += item.name.substring(0, w) + "\n";
-        const priceLine = `${item.qty}x ${item.appliedPrice}`;
-        const totalLine = (item.qty * item.appliedPrice).toString();
-        txt += pad(priceLine, w - totalLine.length, 'left') + totalLine + "\n";
-    });
-
-    txt += pad('', w, 'left', '-') + "\n";
-    txt += pad('Subtotal:', w - tx.subtotal.toString().length) + tx.subtotal + "\n";
-    if(tx.discount > 0) txt += pad('Diskon:', w - tx.discount.toString().length - 1) + "-" + tx.discount + "\n";
-    
-    // Bagian TOTAL tetap dibuat sedikit lebih tebal/besar agar jelas
-    txt += "\x1B\x21\x10" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\n\x1B\x21\x00";
-    
-    // Kembalikan ke mode font kecil setelah baris Total
-    txt += "\x1B\x4D\x01"; 
-
-    txt += pad('', w, 'left', '-') + "\n";
-    txt += pad('Dibayar:', w - tx.received.toString().length) + tx.received + "\n";
-    txt += pad('Kembali:', w - tx.change.toString().length) + tx.change + "\n";
-    
-    txt += "\x1B\x61\x01"; // Center
-    txt += "\nTerima Kasih Atas Kunjungannya\n\n\n\n";
-    txt += "\x1D\x56\x42\x00"; // Cut paper
-    
-    return txt;
-},
+                const is80 = state.settings.paperSize === '80';
+                
+                // [UBAH] Lebar karakter disesuaikan karena Font B lebih kecil/ramping
+                // Kertas 58mm (is80 false) biasanya muat 42 karakter dengan Font B
+                const w = is80 ? 64 : 42; 
+                
+                const pad = (str, len, align='left', padChar=' ') => {
+                    str = String(str).substring(0, len);
+                    if(align === 'left') return str.padEnd(len, padChar);
+                    if(align === 'right') return str.padStart(len, padChar);
+                    return str.padStart(Math.floor((len+str.length)/2), padChar).padEnd(len, padChar);
+                };
+            
+                let txt = "\x1B\x40"; // Init
+                
+                // [TAMBAH] Perintah untuk Font Kecil (Font B)
+                txt += "\x1B\x4D\x01"; 
+            
+                txt += "\x1B\x61\x01"; // Align Center
+                txt += "\x1B\x21\x10" + state.settings.storeName + "\n"; // Tetap Double height agar Nama Toko menonjol
+                txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal (mengikuti Font B)
+                txt += pad('', w, 'left', '-') + "\n";
+                
+                txt += "\x1B\x61\x00"; // Align Left
+                txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
+                txt += pad('No : ' + tx.id, w) + "\n";
+                txt += pad('Ksr: ' + tx.kasir, w) + "\n";
+                txt += pad('', w, 'left', '-') + "\n";
+            
+                tx.items.forEach(item => {
+                    txt += item.name.substring(0, w) + "\n";
+                    const priceLine = `${item.qty}x ${item.appliedPrice}`;
+                    const totalLine = (item.qty * item.appliedPrice).toString();
+                    txt += pad(priceLine, w - totalLine.length, 'left') + totalLine + "\n";
+                });
+            
+                txt += pad('', w, 'left', '-') + "\n";
+                txt += pad('Subtotal:', w - tx.subtotal.toString().length) + tx.subtotal + "\n";
+                if(tx.discount > 0) txt += pad('Diskon:', w - tx.discount.toString().length - 1) + "-" + tx.discount + "\n";
+                
+                // Bagian TOTAL tetap dibuat sedikit lebih tebal/besar agar jelas
+                txt += "\x1B\x21\x10" + pad('TOTAL:', w - tx.grandTotal.toString().length) + tx.grandTotal + "\n\x1B\x21\x00";
+                
+                // Kembalikan ke mode font kecil setelah baris Total
+                txt += "\x1B\x4D\x01"; 
+            
+                txt += pad('', w, 'left', '-') + "\n";
+                txt += pad('Dibayar:', w - tx.received.toString().length) + tx.received + "\n";
+                txt += pad('Kembali:', w - tx.change.toString().length) + tx.change + "\n";
+                
+                txt += "\x1B\x61\x01"; // Center
+                txt += "\nTerima Kasih Atas Kunjungannya\n\n\n\n";
+                txt += "\x1D\x56\x42\x00"; // Cut paper
+                
+                return txt;
+            },
 
             printReceipt: async () => {
                 if(!state.currentReceiptString) return;
