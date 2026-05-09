@@ -2186,7 +2186,7 @@ const db = {
                 txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal
                 txt += pad('', w, 'left', '-') + "\n";
                 
-                txt += "\x1B\x21\x00"; // Align Left
+                txt += "\x1B\x10\x00"; // Align Left
                 txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
                 txt += pad('No : ' + tx.id, w) + "\n";
                 txt += pad('Ksr: ' + tx.kasir, w) + "\n";
@@ -2208,7 +2208,7 @@ const db = {
                 txt += pad('Dibayar:', w - tx.received.toString().length) + tx.received + "\n";
                 txt += pad('Kembali:', w - tx.change.toString().length) + tx.change + "\n";
                 
-                txt += "\x1B\x61\x01"; // Center
+                txt += "\x1B\x21\x01"; // Center
                 txt += "\nTerima Kasih Atas Kunjungannya\n\n\n\n";
                 txt += "\x1D\x56\x42\x00"; // Cut paper
                 
