@@ -1894,114 +1894,101 @@ const db = {
 
         // Hardware Interactions (Scanner & Printer)
         const hw = {
-            // --- BARCODE SCANNER ---
-            scannerTargetInput: null,
-            openScanner: async (targetId = 'pos-search') => {
-                hw.scannerTargetInput = targetId;
-                ui.openModal('scanner-modal');
-                state.scannerActive = true;
-                
-                const readerEl = document.getElementById('reader');
-                readerEl.innerHTML = '<div class="flex items-center justify-center h-[300px] text-slate-400 text-sm">Menghubungkan kamera...</div>';
-                
-                if (!state.html5QrcodeScanner) {
-                    state.html5QrcodeScanner = new Html5Qrcode("reader");
+        scannerTargetInput: null,
+        openScanner: async (targetId = 'pos-search') => {
+            hw.scannerTargetInput = targetId;
+            ui.openModal('scanner-modal');
+            state.scannerActive = true;
+            
+            const readerEl = document.getElementById('reader');
+            readerEl.innerHTML = '<div class="flex items-center justify-center h-[300px] text-slate-400 text-sm">Menghubungkan kamera...</div>';
+            
+            if (!state.html5QrcodeScanner) {
+                // PASTIKAN INI Html5Qrcode (Angka 5)
+                state.html5QrcodeScanner = new Html5Qrcode("reader");
+            }
+            
+            const config = { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.0 };
+            
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Kamera diblokir oleh lingkungan/iFrame.");
                 }
-                
-                const config = { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.0 };
-                
-                try {
-                    // Cek dukungan media terlebih dahulu (mencegah error crash di iFrame)
-                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                        throw new Error("Kamera diblokir oleh lingkungan/iFrame.");
-                    }
-
-                    // Minta izin dan dapatkan daftar kamera
-                    const devices = await Html5Qrcode.getCameras();
-                    if (devices && devices.length) {
-                        // Coba cari kamera belakang (environment/back)
-                        let cameraId = devices[0].id;
-                        for (let i = 0; i < devices.length; i++) {
-                            if (devices[i].label.toLowerCase().includes('back') || devices[i].label.toLowerCase().includes('environment')) {
-                                cameraId = devices[i].id;
-                                break;
-                            }
+    
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length) {
+                    let cameraId = devices[0].id;
+                    for (let i = 0; i < devices.length; i++) {
+                        if (devices[i].label.toLowerCase().includes('back') || devices[i].label.toLowerCase().includes('environment')) {
+                            cameraId = devices[i].id;
+                            break;
                         }
-                        
-                        await state.html5QrcodeScanner.start(cameraId, config, hw.onScanSuccess, hw.onScanFailure);
-                    } else {
-                        throw new Error("Kamera tidak terdeteksi");
                     }
-                } catch (err) {
-                    console.error("Akses kamera gagal", err);
-                    // JANGAN TUTUP MODAL! Tampilkan pesan error di dalam kotak hitam saja
-                    document.getElementById('reader').innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-[300px] text-slate-400 p-6 text-center">
-                            <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            <p class="font-bold text-white mb-1">Kamera Diblokir Browser</p>
-                            <p class="text-xs">Klik tombol biru <b>"Ambil Foto"</b> di bawah untuk menjepret barcode menggunakan kamera bawaan HP Anda.</p>
-                        </div>
-                    `;
+                    await state.html5QrcodeScanner.start(cameraId, config, hw.onScanSuccess, hw.onScanFailure);
+                } else {
+                    throw new Error("Kamera tidak terdeteksi");
                 }
-            },
-            closeScanner: () => {
-                state.scannerActive = false;
-                if (state.html5QrcodeScanner && state.html5QrcodeScanner.isScanning) {
-                    state.html5QrcodeScanner.stop().then(() => {
-                        state.html5QrcodeScanner.clear();
-                    }).catch(err => console.log(err));
+            } catch (err) {
+                console.error("Akses kamera gagal", err);
+                document.getElementById('reader').innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-[300px] text-slate-400 p-6 text-center">
+                        <svg class="w-12 h-12 mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <p class="font-bold text-white mb-1">Akses Kamera Gagal</p>
+                        <p class="text-xs">Pastikan izin kamera sudah diberikan atau gunakan tombol <b>"Ambil Foto"</b>.</p>
+                    </div>
+                `;
+            }
+        },
+        closeScanner: () => {
+            state.scannerActive = false;
+            if (state.html5QrcodeScanner && state.html5QrcodeScanner.isScanning) {
+                state.html5QrcodeScanner.stop().then(() => {
+                    state.html5QrcodeScanner.clear();
+                }).catch(err => console.log(err));
+            }
+        },
+        onScanSuccess: (decodedText, decodedResult) => {
+            // Efek Suara Bip
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator(); 
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.connect(ctx.destination); 
+                osc.start(); 
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+    
+            hw.closeScanner();
+            ui.closeModal('scanner-modal');
+            
+            const inputEl = document.getElementById(hw.scannerTargetInput);
+            if(inputEl) {
+                inputEl.value = decodedText;
+                if(hw.scannerTargetInput === 'pos-search') {
+                    pos.addToCart(decodedText); 
+                    inputEl.value = ''; 
                 }
-            },
-            onScanSuccess: (decodedText, decodedResult) => {
-                // Beep sound
-                try {
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
-                    osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
-                } catch(e) {}
-
-                hw.closeScanner();
-                ui.closeModal('scanner-modal');
-                
-                const inputEl = document.getElementById(hw.scannerTargetInput);
-                if(inputEl) {
-                    inputEl.value = decodedText;
-                    if(hw.scannerTargetInput === 'pos-search') {
-                        pos.addToCart(decodedText); // Auto add to cart if found
-                        inputEl.value = ''; // clear
-                    }
-                }
-            },
-            onScanFailure: (error) => { /* ignore */ },
-
-            scanFromFile: (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                if (!state.html5QrcodeScanner) {
-                    state.html5QrcodeScanner = new Html5Qrcode("reader");
-                }
-
-                // Tutup kamera live jika sedang menyala
-                if (state.html5QrcodeScanner.isScanning) {
-                    state.html5QrcodeScanner.stop().catch(e => console.log(e));
-                }
-
-                ui.showAlert('Memproses Gambar...', 'Sedang membaca barcode dari gambar, mohon tunggu.', false);
-
-                state.html5QrcodeScanner.scanFile(file, true)
-                    .then(decodedText => {
-                        ui.closeAlert();
-                        hw.onScanSuccess(decodedText, null);
-                    })
-                    .catch(err => {
-                        ui.closeAlert();
-                        ui.showAlert('Scan Gagal', 'Barcode tidak ditemukan pada gambar tersebut. Pastikan gambar jelas dan tidak buram.', true);
-                    });
-                
-                // Reset input file
-                event.target.value = '';
-            },
+            }
+        },
+        onScanFailure: (error) => { /* abaikan error kecil saat mencari fokus */ },
+        
+        // Fungsi untuk scan dari gambar (File)
+        scanFromFile: (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!state.html5QrcodeScanner) state.html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            state.html5QrcodeScanner.scanFile(file, true)
+                .then(decodedText => {
+                    hw.onScanSuccess(decodedText, null);
+                })
+                .catch(err => {
+                    alert("Barcode tidak terbaca di foto ini. Coba foto lebih dekat.");
+                });
+            event.target.value = '';
+        }
+    }; // Penutup objek hw
 
             // Physical Scanner USB/Bluetooth Keypress Listener
             initPhysicalScanner: () => {
@@ -2277,5 +2264,17 @@ const db = {
         };
 
     </script>
+        <div id="scanner-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-xl overflow-hidden w-full max-w-md">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold">Scan Barcode</h3>
+                <button onclick="hw.stopScanner()" class="text-slate-500 text-2xl">&times;</button>
+            </div>
+            <div id="reader" class="w-full"></div> 
+            <div class="p-4 text-center text-sm text-slate-500">
+                Posisikan barcode di tengah kotak
+            </div>
+        </div>
+    </div>
 </body>
 </html>
