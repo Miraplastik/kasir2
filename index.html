@@ -10,7 +10,7 @@
     
     <!-- Libraries: jsBarcode & html5-qrcode -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/recta/dist/recta.js"
+    <script src="https://cdn.jsdelivr.net/npm/recta/dist/recta.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
     <!-- Tailwind Config for Custom Colors/Fonts -->
@@ -2186,7 +2186,7 @@ const db = {
                 txt += "\x1B\x21\x00" + state.settings.storeAddress + "\n"; // Normal
                 txt += pad('', w, 'left', '-') + "\n";
                 
-                txt += "\x1B\x61\x01"; // Baru kemudian Align Center
+                txt += "\x1B\x21\x01"; // Baru kemudian Align Center
                 txt += pad('Tgl: ' + getFormatDate(tx.date), w) + "\n";
                 txt += pad('No : ' + tx.id, w) + "\n";
                 txt += pad('Ksr: ' + tx.kasir, w) + "\n";
